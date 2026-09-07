@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Birthday Quiz - Dubai Edition</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: #fff;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .header h1 {
+      font-size: 3em;
+      background: linear-gradient(90deg, #ffd700, #ffb347);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+    
+    .mode-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-top: 40px;
+    }
+    
+    .mode-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 215, 0, 0.3);
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .mode-card:hover {
+      transform: translateY(-5px);
+      border-color: #ffd700;
+      box-shadow: 0 10px 40px rgba(255, 215, 0, 0.2);
+    }
+    
+    .mode-icon {
+      font-size: 60px;
+      margin-bottom: 20px;
+    }
+    
+    .mode-card h2 {
+      color: #ffd700;
+      margin-bottom: 15px;
+    }
+    
+    .mode-card p {
+      color: #aaa;
+      line-height: 1.6;
+    }
+    
+    .btn {
+      padding: 15px 40px;
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #1a1a2e;
+      background: linear-gradient(135deg, #ffd700, #ffb347);
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 20px;
+    }
+    
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+    }
+    
+    @media (max-width: 600px) {
+      .mode-selector { grid-template-columns: 1fr; }
+      .header h1 { font-size: 2em; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎂 Birthday Quiz Night</h1>
+      <p style="color: #aaa; font-size: 1.2em;">September 17 · Dubai 🇦🇪</p>
+    </div>
+    
+    <div class="mode-selector">
+      <div class="mode-card" onclick="window.location.href='/host'">
+        <div class="mode-icon">🎮</div>
+        <h2>Host the Game</h2>
+        <p>Create a quiz room and share QR code with your friends. Control the game from your device!</p>
+        <button class="btn">Create Room</button>
+      </div>
+      
+      <div class="mode-card" onclick="window.location.href='/join'">
+        <div class="mode-icon">📱🎯</div>
+        <h2>Join Game</h2>
+        <p>Scan QR code or enter room code to play with friends on your phone!</p>
+        <button class="btn">Join Now</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
