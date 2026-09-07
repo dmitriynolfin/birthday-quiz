@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Main Screen - Birthday Quiz</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      overflow: hidden;
+    }
+
+    .lobby-screen, .question-screen, .stats-screen, .results-screen {
+      display: none;
+      width: 100%;
+      max-width: 1200px;
+      text-align: center;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .lobby-screen.active, .question-screen.active, .stats-screen.active, .results-screen.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Lobby */
+    .lobby-title { font-size: 4em; color: #ffd700; margin-bottom: 20px; }
+    .lobby-text { font-size: 2em; color: #aaa; }
+
+    /* Question */
+    .category {
+      font-size: 1.5em;
+      color: #ffd700;
+      text-transform: uppercase;
+      letter-spacing: 5px;
+      margin-bottom: 20px;
+    }
+
+    .question-text {
+      font-size: 3.5em;
+      font-weight: bold;
+      line-height: 1.2;
+      margin-bottom: 40px;
+      text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    .timer {
+      position: absolute;
+      top: 40px;
+      right: 60px;
+      font-size: 5em;
+      font-weight: bold;
+      color: #fff;
+      background: rgba(255, 215, 0, 0.2);
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 4px solid #ffd700;
+    }
+
+    .timer.warning { color: #f44336; border-color: #f44336; animation: pulse 1s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      width: 100%;
+    }
+
+    .option-box {
+      background: rgba(255, 255, 255, 0.1);
+      border: 3px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 30px;
+      font-size: 1.8em;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s;
+    }
+
+    .option-box:nth-child(1) { border-left: 15px solid #f44336; }
+    .option-box:nth-child(2) { border-left: 15px solid #2196f3; }
+    .option-box:nth-child(3) { border-left: 15px solid #ffeb3b; color: #fff; }
+    .option-box:nth-child(4) { border-left: 15px solid #4caf50; }
+
+    .option-letter {
+      font-size: 1.5em;
+      margin-right: 20px;
+      opacity: 0.7;
+    }
+
+    /* Stats Screen */
+    .stats-title { font-size: 3em; color: #ffd700; margin-bottom: 40px; }
+    .stats-bar-container {
+      width: 100%;
+      margin: 20px 0;
+      text-align: left;
+    }
+    .stats-label { font-size: 1.5em; margin-bottom: 10px; display: flex; justify-content: space-between; }
+    .stats-bar-bg {
+      height: 50px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 25px;
+      overflow: hidden;
+    }
+    .stats-bar-fill {
+      height: 100%;
+      border-radius: 25px;
+      transition: width 0.5s ease;
+      display: flex;
+      align-items: center;
+      padding-left: 20px;
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #1a1a2e;
+    }
+
+    /* Results */
+    .results-title { font-size: 4em; color: #ffd700; margin-bottom: 40px; }
+    .leaderboard-main {
+      width: 100%;
+      max-width: 800px;
+    }
+    .leader-item {
+      background: rgba(255, 255, 255, 0.1);
+      margin: 15px 0;
+      padding: 20px 40px;
+      border-radius: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 2em;
+      animation: slideUp 0.5s ease forwards;
+      opacity: 0;
+    }
+    .leader-item:nth-child(1) { background: linear-gradient(90deg, rgba(255,215,0,0.3), rgba(255,215,0,0.1)); border: 2px solid #ffd700; animation-delay: 0.1s; }
+    .leader-item:nth-child(2) { animation-delay: 0.3s; }
+    .leader-item:nth-child(3) { animation-delay: 0.5s; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .waiting-msg { font-size: 2em; color: #aaa; margin-top: 30px; }
+  </style>
+</head>
+<body>
+
+  <div class="timer" id="timer" style="display: none;">15</div>
+
+  <!-- Lobby -->
+  <div class="lobby-screen active" id="lobbyScreen">
+    <div class="lobby-title">🎂 Birthday Quiz Night</div>
+    <div class="lobby-text">Waiting for the host to start the game...</div>
+    <div style="margin-top: 30px; font-size: 1.5em; color: #ffd700;">Room: <span id="displayRoomCode">---</span></div>
+  </div>
+
+  <!-- Question -->
+  <div class="question-screen" id="questionScreen">
+    <div class="category" id="qCategory">Category</div>
+    <div class="question-text" id="qText">Question goes here?</div>
+    <div class="options-grid" id="optionsGrid"></div>
+  </div>
+
+  <!-- Stats (after time runs out) -->
+  <div class="stats-screen" id="statsScreen">
+    <div class="stats-title">Time's Up!</div>
+    <div id="statsContainer" style="width: 100%; max-width: 800px;"></div>
+    <div class="waiting-msg">Waiting for the host to continue...</div>
+  </div>
+
+  <!-- Results -->
+  <div class="results-screen" id="resultsScreen">
+    <div class="results-title">🏆 Final Leaderboard</div>
+    <div class="leaderboard-main" id="leaderboardMain"></div>
+  </div>
+
+  <script>
+    const socket = io();
+    const pathParts = window.location.pathname.split('/');
+    const roomCode = pathParts[2];
+    
+    document.getElementById('displayRoomCode').textContent = roomCode || 'Unknown';
+
+    if (roomCode) {
+      // Присоединяемся как специальный зритель "Main Screen"
+      socket.emit('join-game', { roomCode, playerName: '📺 Main Screen' });
+    }
+
+    socket.on('game-started', () => {
+      document.getElementById('lobbyScreen').classList.remove('active');
+    });
+
+    socket.on('new-question', (data) => {
+      document.getElementById('statsScreen').classList.remove('active');
+      document.getElementById('questionScreen').classList.add('active');
+      
+      document.getElementById('qCategory').textContent = data.category;
+      document.getElementById('qText').textContent = data.question;
+      
+      const grid = document.getElementById('optionsGrid');
+      grid.innerHTML = '';
+      const letters = ['A', 'B', 'C', 'D'];
+      const colors = ['#f44336', '#2196f3', '#ffeb3b', '#4caf50'];
+      
+      data.options.forEach((opt, i) => {
+        const div = document.createElement('div');
+        div.className = 'option-box';
+        div.style.borderLeftColor = colors[i];
+        div.innerHTML = `<span class="option-letter" style="color:${colors[i]}">${letters[i]}</span> ${opt}`;
+        grid.appendChild(div);
+      });
+
+      // Таймер
+      const timerEl = document.getElementById('timer');
+      timerEl.style.display = 'flex';
+      timerEl.classList.remove('warning');
+      let timeLeft = data.time;
+      timerEl.textContent = timeLeft;
+      
+      if (window.timerInterval) clearInterval(window.timerInterval);
+      window.timerInterval = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = timeLeft;
+        if (timeLeft <= 5) timerEl.classList.add('warning');
+        if (timeLeft <= 0) {
+          clearInterval(window.timerInterval);
+          timerEl.style.display = 'none';
+        }
+      }, 1000);
+    });
+
+    socket.on('answer-stats', (data) => {
+      // Показываем статистику, когда время вышло или все ответили
+      if (document.getElementById('timer').textContent === '0' || data.totalAnswers === data.totalPlayers) {
+        document.getElementById('questionScreen').classList.remove('active');
+        document.getElementById('statsScreen').classList.add('active');
+        
+        const container = document.getElementById('statsContainer');
+        const letters = ['A', 'B', 'C', 'D'];
+        const colors = ['#f44336', '#2196f3', '#ffeb3b', '#4caf50'];
+        
+        // Здесь можно расширить логику, если сервер будет присылать детали по вариантам
+        // Пока показываем общее количество ответивших
+        container.innerHTML = `
+          <div class="stats-bar-container">
+            <div class="stats-label"><span>Players Answered</span> <span>${data.totalAnswers} / ${data.totalPlayers}</span></div>
+            <div class="stats-bar-bg">
+              <div class="stats-bar-fill" style="width: ${(data.totalAnswers/data.totalPlayers)*100}%; background: #ffd700;">
+                ${Math.round((data.totalAnswers/data.totalPlayers)*100)}%
+              </div>
+            </div>
+          </div>
+          <div class="stats-bar-container">
+            <div class="stats-label"><span>Correct Answers</span> <span>${data.correctAnswers}</span></div>
+            <div class="stats-bar-bg">
+              <div class="stats-bar-fill" style="width: ${(data.correctAnswers/data.totalPlayers)*100}%; background: #4caf50;">
+                ${data.correctAnswers}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    });
+
+    socket.on('game-over', (data) => {
+      document.getElementById('statsScreen').classList.remove('active');
+      document.getElementById('questionScreen').classList.remove('active');
+      document.getElementById('timer').style.display = 'none';
+      document.getElementById('resultsScreen').classList.add('active');
+      
+      const lb = document.getElementById('leaderboardMain');
+      lb.innerHTML = data.leaderboard.map((p, i) => `
+        <div class="leader-item">
+          <div style="display:flex; align-items:center; gap:20px;">
+            <span style="font-size:1.5em;">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i+1)}</span>
+            <span>${p.avatar} ${p.name}</span>
+          </div>
+          <span style="color: #ffd700; font-weight: bold;">${p.score} pts</span>
+        </div>
+      `).join('');
+    });
+  </script>
+</body>
+</html>
