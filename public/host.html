@@ -98,6 +98,7 @@
     .player-name {
       font-weight: bold;
       color: #ffd700;
+      word-break: break-word;
     }
     
     .question-screen, .results-screen, .lobby-screen {
@@ -157,6 +158,7 @@
       align-items: center;
       justify-content: center;
       font-weight: bold;
+      color: #fff;
     }
     
     .btn {
@@ -170,17 +172,13 @@
       cursor: pointer;
       transition: all 0.3s;
       margin: 10px;
+      text-decoration: none;
+      display: inline-block;
     }
     
     .btn:hover {
       transform: translateY(-3px);
       box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
-    }
-    
-    .btn-secondary {
-      background: transparent;
-      color: #ffd700;
-      border: 2px solid #ffd700;
     }
     
     .leaderboard {
@@ -253,6 +251,10 @@
         <img id="qrCode" src="" alt="QR Code">
       </div>
       <p style="color: #aaa; margin-top: 10px;">Scan to join the game</p>
+      
+      <!-- НОВАЯ КНОПКА ДЛЯ ГЛАВНОГО ЭКРАНА -->
+      <br>
+      <a id="screenLink" href="#" target="_blank" class="btn" style="text-decoration: none; display: inline-block; margin-top: 20px;">📺 Open Main Screen (for TV/Projector)</a>
     </div>
     
     <div class="players-list">
@@ -313,6 +315,9 @@
         
         document.getElementById('roomCode').textContent = data.roomCode;
         document.getElementById('qrCode').src = data.qrCode;
+        
+        // ОБНОВЛЯЕМ ССЫЛКУ ДЛЯ ГЛАВНОГО ЭКРАНА
+        document.getElementById('screenLink').href = '/screen/' + data.roomCode;
         
         socket.emit('join-game', { roomCode: data.roomCode, playerName: 'Host' });
       } catch (error) {
