@@ -6,7 +6,7 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = socketIo(server, { cors: { origin: "*" } });
 
 app.use(express.static('public'));
 app.use(express.json());
@@ -18,7 +18,45 @@ function generateRoomCode() {
 }
 
 const defaultQuestions = [
-  // === DUBAI QUESTIONS ===
+  // === 🇷🇺 RUSSIA QUESTIONS (NEW) ===
+  { 
+    category: "🇷🇺 Russia", 
+    question: "What is the deepest and oldest freshwater lake in the world, located in Russia?", 
+    options: ["Lake Ladoga", "Lake Baikal", "Lake Onega", "Caspian Sea"], 
+    correct: 1, 
+    time: 15,
+    videoUrl: "https://www.youtube.com/embed/H0R6Yj8kOqE?autoplay=1&mute=1&start=10" // Пример видео
+  },
+  { 
+    category: "🇷🇺 Russia", 
+    question: "Which Russian city is famously known as the 'Venice of the North'?", 
+    options: ["Moscow", "Kazan", "St. Petersburg", "Sochi"], 
+    correct: 2, 
+    time: 15 
+  },
+  { 
+    category: "🇷🇺 Russia", 
+    question: "What is the name of the traditional Russian wooden nesting dolls?", 
+    options: ["Babushka", "Matryoshka", "Kokoshnik", "Sputnik"], 
+    correct: 1, 
+    time: 10 
+  },
+  { 
+    category: "🇷🇺 Russia", 
+    question: "The Trans-Siberian Railway, the longest railway line in the world, connects Moscow to which city?", 
+    options: ["Beijing", "Vladivostok", "St. Petersburg", "Novosibirsk"], 
+    correct: 1, 
+    time: 15 
+  },
+  { 
+    category: "🇷🇺 Russia", 
+    question: "Who was the first human to journey into outer space in 1961?", 
+    options: ["Neil Armstrong", "Yuri Gagarin", "Alexei Leonov", "Valentina Tereshkova"], 
+    correct: 1, 
+    time: 10 
+  },
+
+  // === 🏙️ DUBAI QUESTIONS ===
   { 
     category: "🏙️ Dubai", 
     question: "What is the height of Burj Khalifa, the tallest building in the world?", 
@@ -38,92 +76,8 @@ const defaultQuestions = [
     correct: 3, 
     time: 15 
   },
-  { 
-    category: "🏙️ Dubai", 
-    question: "Which luxury cars does Dubai Police use?", 
-    options: [
-      "Only Toyota Camry",
-      "Lamborghini, Ferrari, and Bugatti",
-      "Tesla only",
-      "BMW and Mercedes"
-    ], 
-    correct: 1, 
-    time: 10 
-  },
-  { 
-    category: "🏙️ Dubai", 
-    question: "What is unique about Dubai Mall?", 
-    options: [
-      "It has an indoor ski resort",
-      "It has an aquarium with 33,000 sea animals",
-      "It has over 1,200 stores",
-      "All of the above"
-    ], 
-    correct: 3, 
-    time: 15 
-  },
-  { 
-    category: "🏙️ Dubai", 
-    question: "What was Dubai's main industry before oil was discovered?", 
-    options: [
-      "Gold mining",
-      "Fishing and pearl diving",
-      "Textile manufacturing",
-      "Agriculture"
-    ], 
-    correct: 1, 
-    time: 10 
-  },
-  { 
-    category: "🏙️ Dubai", 
-    question: "What is the name of the sail-shaped luxury hotel in Dubai?", 
-    options: [
-      "Atlantis The Palm",
-      "Burj Al Arab",
-      "Jumeirah Beach Hotel",
-      "Armani Hotel"
-    ], 
-    correct: 1, 
-    time: 10 
-  },
-  { 
-    category: "🏙️ Dubai", 
-    question: "What is special about Dubai Metro?", 
-    options: [
-      "It's the fastest metro in the world",
-      "It's the longest driverless metro network in the world",
-      "It's completely free",
-      "It runs on solar energy"
-    ], 
-    correct: 1, 
-    time: 15 
-  },
-  { 
-    category: "🏙️ Dubai", 
-    question: "Where can you ski indoors in the middle of the desert?", 
-    options: [
-      "Dubai Ice Rink",
-      "Ski Dubai at Mall of the Emirates",
-      "Dubai Snow Park",
-      "Winter Garden Dubai"
-    ], 
-    correct: 1, 
-    time: 10 
-  },
   
-  // === MAGNITOGORSK QUESTIONS ===
-  { 
-    category: "🏭 Magnitogorsk", 
-    question: "What is Magnitogorsk famous for?", 
-    options: [
-      "Being the capital of Russia",
-      "One of the world's largest steel and iron plants (MMK)",
-      "Having the largest university in Russia",
-      "Being a major seaport"
-    ], 
-    correct: 1, 
-    time: 15 
-  },
+  // === 🏭 MAGNITOGORSK QUESTIONS ===
   { 
     category: "🏭 Magnitogorsk", 
     question: "What is unique about Magnitogorsk's location?", 
@@ -138,90 +92,13 @@ const defaultQuestions = [
   },
   { 
     category: "🏭 Magnitogorsk", 
-    question: "When was Magnitogorsk founded?", 
-    options: [
-      "1750",
-      "1850",
-      "1930",
-      "1950"
-    ], 
-    correct: 2, 
-    time: 10 
-  },
-  { 
-    category: "🏭 Magnitogorsk", 
-    question: "What does MMK stand for in Magnitogorsk?", 
-    options: [
-      "Magnitogorsk Medical complex",
-      "Magnitogorsk Iron and Steel Works",
-      "Magnitogorsk Metro system",
-      "Magnitogorsk Music conservatory"
-    ], 
-    correct: 1, 
-    time: 10 
-  },
-  { 
-    category: "🏭 Magnitogorsk", 
     question: "What river flows through Magnitogorsk?", 
-    options: [
-      "Volga River",
-      "Ural River",
-      "Ob River",
-      "Yenisei River"
-    ], 
+    options: ["Volga River", "Ural River", "Ob River", "Yenisei River"], 
     correct: 1, 
-    time: 10 
-  },
-  { 
-    category: "🏭 Magnitogorsk", 
-    question: "What is Magnitogorsk's nickname?", 
-    options: [
-      "City of Gold",
-      "Steel Capital",
-      "City of Eternal Summer",
-      "Northern Venice"
-    ], 
-    correct: 1, 
-    time: 10 
-  },
-  { 
-    category: "🏭 Magnitogorsk", 
-    question: "Approximately how many people live in Magnitogorsk?", 
-    options: [
-      "Around 100,000",
-      "Around 200,000",
-      "Around 400,000",
-      "Around 1 million"
-    ], 
-    correct: 2, 
-    time: 15 
-  },
-  { 
-    category: "🏭 Magnitogorsk", 
-    question: "During which historical period was Magnitogorsk built?", 
-    options: [
-      "Tsarist Russia",
-      "Soviet industrialization (First Five-Year Plan)",
-      "Post-Soviet era",
-      "World War II"
-    ], 
-    correct: 1, 
-    time: 15 
-  },
-  { 
-    category: "🏭 Magnitogorsk", 
-    question: "What is the climate like in Magnitogorsk?", 
-    options: [
-      "Tropical",
-      "Mediterranean",
-      "Continental with cold winters",
-      "Arctic"
-    ], 
-    correct: 2, 
     time: 10 
   },
   
-  // === BIRTHDAY STAR PERSONAL QUESTIONS ===
+  // === 🎂 BIRTHDAY STAR PERSONAL QUESTIONS ===
   { 
     category: "🎂 Birthday Star", 
     question: "What is my favorite food?", 
@@ -231,23 +108,9 @@ const defaultQuestions = [
   },
   { 
     category: "🎂 Birthday Star", 
-    question: "Where do I want to travel most?", 
-    options: ["Japan", "Iceland", "Maldives", "Peru"], 
-    correct: 0, 
-    time: 10 
-  },
-  { 
-    category: "🎂 Birthday Star", 
     question: "What would be my superpower?", 
     options: ["Flying", "Invisibility", "Time travel", "Super strength"], 
     correct: 2, 
-    time: 10 
-  },
-  { 
-    category: "🎂 Birthday Star", 
-    question: "What's my favorite season?", 
-    options: ["Winter", "Spring", "Summer", "Autumn"], 
-    correct: 3, 
     time: 10 
   }
 ];
@@ -280,15 +143,13 @@ app.get('/api/room/:code', (req, res) => {
   });
 });
 
-// Чистые маршруты без .html
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/host', (req, res) => res.sendFile(path.join(__dirname, 'public', 'host.html')));
 app.get('/join', (req, res) => res.sendFile(path.join(__dirname, 'public', 'join.html')));
 app.get('/join/:code', (req, res) => res.sendFile(path.join(__dirname, 'public', 'join.html')));
+app.get('/screen/:code', (req, res) => res.sendFile(path.join(__dirname, 'public', 'screen.html')));
 
 io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-  
   socket.on('join-game', ({ roomCode, playerName }) => {
     const room = rooms[roomCode];
     if (!room) return socket.emit('error', 'Room not found');
@@ -323,6 +184,21 @@ io.on('connection', (socket) => {
     setTimeout(() => sendQuestion(roomCode), 2000);
   });
 
+  // НОВЫЙ ПОТОК: Сначала показываем результаты раунда, потом следующий вопрос
+  socket.on('show-round-results', (roomCode) => {
+    const room = rooms[roomCode];
+    if (!room) return;
+    
+    const leaderboard = Object.values(room.players).map(player => ({
+      id: player.id,
+      name: player.name,
+      score: room.scores[player.id] || 0,
+      avatar: player.avatar
+    })).sort((a, b) => b.score - a.score);
+    
+    io.to(roomCode).emit('round-results', { leaderboard });
+  });
+
   socket.on('next-question', (roomCode) => {
     const room = rooms[roomCode];
     if (!room) return;
@@ -340,8 +216,6 @@ io.on('connection', (socket) => {
     if (!room || room.gameState !== 'playing') return;
     
     const question = room.questions[room.currentQuestion];
-    
-    // Проверяем, не отвечал ли уже этот игрок
     if (room.questionScores[room.currentQuestion]?.[socket.id]) return;
     
     const isCorrect = answerIndex === question.correct;
@@ -352,10 +226,7 @@ io.on('connection', (socket) => {
     }
     
     room.questionScores[room.currentQuestion][socket.id] = { 
-      answer: answerIndex, 
-      correct: isCorrect, 
-      points: points, 
-      time: Date.now() 
+      answer: answerIndex, correct: isCorrect, points: points, time: Date.now() 
     };
     
     if (isCorrect) {
@@ -375,7 +246,6 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
     Object.values(rooms).forEach(room => {
       if (room.players[socket.id]) {
         delete room.players[socket.id];
@@ -393,14 +263,14 @@ function sendQuestion(roomCode) {
   if (!room) return;
   
   const question = room.questions[room.currentQuestion];
-  
   io.to(roomCode).emit('new-question', {
     questionNumber: room.currentQuestion + 1,
     totalQuestions: room.questions.length,
     category: question.category,
     question: question.question,
     options: question.options,
-    time: question.time
+    time: question.time,
+    videoUrl: question.videoUrl || null
   });
 }
 
@@ -409,12 +279,8 @@ function endGame(roomCode) {
   if (!room) return;
   
   room.gameState = 'results';
-  
   const leaderboard = Object.values(room.players).map(player => ({
-    id: player.id,
-    name: player.name,
-    score: room.scores[player.id] || 0,
-    avatar: player.avatar
+    id: player.id, name: player.name, score: room.scores[player.id] || 0, avatar: player.avatar
   })).sort((a, b) => b.score - a.score);
   
   io.to(roomCode).emit('game-over', { leaderboard });
@@ -423,6 +289,4 @@ function endGame(roomCode) {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`Local: http://localhost:${PORT}`);
-  console.log(`Host: http://localhost:${PORT}/host`);
 });
