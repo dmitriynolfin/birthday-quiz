@@ -7,254 +7,70 @@
   <script src="/socket.io/socket.io.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
-    
     body {
-      min-height: 100vh;
+      min-height: 100dvh;
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       color: #fff;
       padding: 20px;
     }
-    
     .container { max-width: 1000px; margin: 0 auto; }
-    
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    
-    .header h1 {
-      font-size: 2.5em;
-      background: linear-gradient(90deg, #ffd700, #ffb347);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
+    .header { text-align: center; margin-bottom: 30px; }
+    .header h1 { font-size: 2.5em; background: linear-gradient(90deg, #ffd700, #ffb347); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     
     .room-info {
-      background: rgba(255, 215, 0, 0.1);
-      border: 2px solid #ffd700;
-      border-radius: 20px;
-      padding: 30px;
-      text-align: center;
-      margin-bottom: 30px;
+      background: rgba(255, 215, 0, 0.1); border: 2px solid #ffd700; border-radius: 20px;
+      padding: 30px; text-align: center; margin-bottom: 30px;
     }
+    .room-code { font-size: 3em; font-weight: bold; color: #ffd700; letter-spacing: 10px; margin: 20px 0; }
+    .qr-section { background: #fff; padding: 20px; border-radius: 15px; display: inline-block; margin: 20px 0; }
+    .qr-section img { width: 200px; height: 200px; }
     
-    .room-code {
-      font-size: 3em;
-      font-weight: bold;
-      color: #ffd700;
-      letter-spacing: 10px;
-      margin: 20px 0;
-    }
+    .players-list { background: rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 30px; margin-bottom: 30px; }
+    .players-list h2 { color: #ffd700; margin-bottom: 20px; }
+    .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+    .player-card { background: rgba(255, 255, 255, 0.08); padding: 15px; border-radius: 10px; text-align: center; animation: fadeIn 0.5s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .player-avatar { font-size: 35px; margin-bottom: 10px; }
+    .player-name { font-weight: bold; color: #ffd700; word-break: break-word; font-size: 0.9em; }
     
-    .qr-section {
-      background: #fff;
-      padding: 20px;
-      border-radius: 15px;
-      display: inline-block;
-      margin: 20px 0;
-    }
+    .screen { background: rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 40px; text-align: center; display: none; }
+    .screen.active { display: block; animation: fadeIn 0.5s; }
     
-    .qr-section img {
-      width: 250px;
-      height: 250px;
-    }
-    
-    .players-list {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 20px;
-      padding: 30px;
-      margin-bottom: 30px;
-    }
-    
-    .players-list h2 {
-      color: #ffd700;
-      margin-bottom: 20px;
-    }
-    
-    .player-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 15px;
-    }
-    
-    .player-card {
-      background: rgba(255, 255, 255, 0.08);
-      padding: 15px;
-      border-radius: 10px;
-      text-align: center;
-      animation: fadeIn 0.5s;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .player-avatar {
-      font-size: 40px;
-      margin-bottom: 10px;
-    }
-    
-    .player-name {
-      font-weight: bold;
-      color: #ffd700;
-      word-break: break-word;
-    }
-    
-    .question-screen, .results-screen, .lobby-screen {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 20px;
-      padding: 40px;
-      text-align: center;
-      display: none;
-    }
-    
-    .question-screen.active, .results-screen.active, .lobby-screen.active {
-      display: block;
-      animation: fadeIn 0.5s;
-    }
-    
-    .category {
-      color: #ffd700;
-      font-size: 1.2em;
-      text-transform: uppercase;
-      letter-spacing: 3px;
-      margin-bottom: 15px;
-    }
-    
-    .question-text {
-      font-size: 2em;
-      margin-bottom: 30px;
-      line-height: 1.3;
-    }
-    
-    .timer {
-      font-size: 4em;
-      color: #ffd700;
-      font-weight: bold;
-      margin: 20px 0;
-    }
-    
-    .answer-stats {
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 15px;
-      padding: 20px;
-      margin: 20px 0;
-    }
-    
-    .stat-bar {
-      height: 30px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 15px;
-      overflow: hidden;
-      margin: 10px 0;
-    }
-    
-    .stat-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #4caf50, #8bc34a);
-      transition: width 0.5s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      color: #fff;
-    }
+    .category { color: #ffd700; font-size: 1.2em; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 15px; }
+    .question-text { font-size: clamp(1.5em, 3vw, 2em); margin-bottom: 30px; line-height: 1.3; }
+    .timer { font-size: 4em; color: #ffd700; font-weight: bold; margin: 20px 0; }
     
     .btn {
-      padding: 15px 40px;
-      font-size: 1.1em;
-      font-weight: bold;
-      color: #1a1a2e;
-      background: linear-gradient(135deg, #ffd700, #ffb347);
-      border: none;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: all 0.3s;
-      margin: 10px;
-      text-decoration: none;
-      display: inline-block;
+      padding: 15px 40px; font-size: 1.1em; font-weight: bold; color: #1a1a2e;
+      background: linear-gradient(135deg, #ffd700, #ffb347); border: none; border-radius: 50px;
+      cursor: pointer; transition: all 0.3s; margin: 10px; text-decoration: none; display: inline-block;
     }
-    
-    .btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
-    }
-    
-    .leaderboard {
-      margin-top: 30px;
-    }
+    .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4); }
+    .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; border: 2px solid #ffd700; }
     
     .leaderboard-item {
-      background: rgba(255, 255, 255, 0.08);
-      padding: 20px;
-      margin: 10px 0;
-      border-radius: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      animation: slideIn 0.5s;
+      background: rgba(255, 255, 255, 0.08); padding: 20px; margin: 10px 0; border-radius: 15px;
+      display: flex; align-items: center; justify-content: space-between; animation: slideIn 0.5s;
     }
-    
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(-20px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
-    
-    .leaderboard-item:nth-child(1) {
-      background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 179, 71, 0.2));
-      border: 2px solid #ffd700;
-    }
-    
-    .rank {
-      font-size: 2em;
-      font-weight: bold;
-      margin-right: 20px;
-    }
-    
-    .player-info {
-      flex: 1;
-      text-align: left;
-    }
-    
-    .player-score {
-      font-size: 1.5em;
-      font-weight: bold;
-      color: #ffd700;
-    }
-    
-    .waiting-text {
-      font-size: 1.3em;
-      color: #aaa;
-      margin: 20px 0;
-    }
-    
-    @media (max-width: 600px) {
-      .room-code { font-size: 2em; letter-spacing: 5px; }
-      .question-text { font-size: 1.5em; }
-      .player-grid { grid-template-columns: repeat(2, 1fr); }
-    }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+    .leaderboard-item:nth-child(1) { background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 179, 71, 0.2)); border: 2px solid #ffd700; }
+    .rank { font-size: 2em; font-weight: bold; margin-right: 20px; }
+    .player-score { font-size: 1.5em; font-weight: bold; color: #ffd700; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>🎮 Quiz Host</h1>
+      <h1>🎮 Quiz Host Control</h1>
       <p style="color: #aaa;">Control the game from here</p>
     </div>
     
     <div class="room-info">
       <h2>Room Code</h2>
       <div class="room-code" id="roomCode">Loading...</div>
-      <p>Share this code or QR with your friends!</p>
-      <div class="qr-section">
-        <img id="qrCode" src="" alt="QR Code">
-      </div>
-      <p style="color: #aaa; margin-top: 10px;">Scan to join the game</p>
-      
-      <!-- НОВАЯ КНОПКА ДЛЯ ГЛАВНОГО ЭКРАНА -->
+      <div class="qr-section"><img id="qrCode" src="" alt="QR Code"></div>
       <br>
-      <a id="screenLink" href="#" target="_blank" class="btn" style="text-decoration: none; display: inline-block; margin-top: 20px;">📺 Open Main Screen (for TV/Projector)</a>
+      <a id="screenLink" href="#" target="_blank" class="btn btn-secondary">📺 Open Main Screen (for TV)</a>
     </div>
     
     <div class="players-list">
@@ -264,32 +80,28 @@
       </div>
     </div>
     
-    <!-- Lobby Screen -->
-    <div class="lobby-screen active" id="lobbyScreen">
+    <div class="screen active" id="lobbyScreen">
       <h2>🎉 Ready to Start?</h2>
-      <p class="waiting-text">Wait for players to join, then start the game!</p>
+      <p style="color: #aaa; margin: 20px 0;">Wait for players to join, then start the game!</p>
       <button class="btn" onclick="startGame()">🚀 Start Game</button>
     </div>
     
-    <!-- Question Screen -->
-    <div class="question-screen" id="questionScreen">
+    <div class="screen" id="questionScreen">
       <div class="category" id="qCategory">Category</div>
       <div class="question-text" id="qText">Question?</div>
       <div class="timer" id="timer">15</div>
-      <div class="answer-stats" id="answerStats" style="display: none;">
-        <h3>Answers</h3>
-        <div class="stat-bar">
-          <div class="stat-fill" id="correctBar" style="width: 0%">0 correct</div>
-        </div>
-        <p><span id="answeredCount">0</span> of <span id="totalPlayers">0</span> answered</p>
-      </div>
-      <button class="btn" id="nextBtn" onclick="nextQuestion()" style="display: none;">Next Question →</button>
+      <button class="btn" id="showResultsBtn" onclick="showRoundResults()" style="display: none;">📊 Show Round Results</button>
     </div>
     
-    <!-- Results Screen -->
-    <div class="results-screen" id="resultsScreen">
+    <div class="screen" id="roundResultsScreen">
+      <h2>📊 Round Leaderboard</h2>
+      <div id="roundLeaderboard" style="margin: 30px 0;"></div>
+      <button class="btn" onclick="nextQuestion()">➡️ Next Question</button>
+    </div>
+    
+    <div class="screen" id="finalResultsScreen">
       <h1>🏆 Final Results</h1>
-      <div class="leaderboard" id="leaderboard"></div>
+      <div id="finalLeaderboard" style="margin: 30px 0;"></div>
       <button class="btn" onclick="location.reload()">🔄 New Game</button>
     </div>
   </div>
@@ -297,47 +109,30 @@
   <script>
     const socket = io();
     let roomCode = null;
-    let currentQuestion = null;
-    let timerInterval = null;
-    let timeLeft = 0;
     
-    // Создаем комнату при загрузке
     async function createRoom() {
       try {
         const response = await fetch('/api/create-room', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ hostName: 'Birthday Host' })
         });
-        
         const data = await response.json();
         roomCode = data.roomCode;
-        
         document.getElementById('roomCode').textContent = data.roomCode;
         document.getElementById('qrCode').src = data.qrCode;
-        
-        // ОБНОВЛЯЕМ ССЫЛКУ ДЛЯ ГЛАВНОГО ЭКРАНА
         document.getElementById('screenLink').href = '/screen/' + data.roomCode;
-        
         socket.emit('join-game', { roomCode: data.roomCode, playerName: 'Host' });
       } catch (error) {
         console.error('Error creating room:', error);
-        alert('Error creating room. Please refresh.');
       }
     }
-    
     createRoom();
-    
-    socket.on('joined-success', (data) => {
-      console.log('Joined room:', data.roomCode);
-    });
     
     socket.on('players-update', (data) => {
       document.getElementById('playerCount').textContent = data.playerCount;
-      
       const grid = document.getElementById('playersGrid');
       if (data.players.length === 0) {
-        grid.innerHTML = '<p style="color: #aaa; grid-column: 1/-1;">Waiting for players to join...</p>';
+        grid.innerHTML = '<p style="color: #aaa; grid-column: 1/-1;">Waiting for players...</p>';
       } else {
         grid.innerHTML = data.players.map(p => `
           <div class="player-card">
@@ -348,54 +143,59 @@
       }
     });
     
-    socket.on('game-started', (data) => {
+    socket.on('game-started', () => {
       document.getElementById('lobbyScreen').classList.remove('active');
       document.getElementById('questionScreen').classList.add('active');
     });
     
     socket.on('new-question', (data) => {
-      currentQuestion = data;
       document.getElementById('qCategory').textContent = data.category;
       document.getElementById('qText').textContent = data.question;
       document.getElementById('timer').textContent = data.time;
-      document.getElementById('answerStats').style.display = 'none';
-      document.getElementById('nextBtn').style.display = 'none';
+      document.getElementById('showResultsBtn').style.display = 'none';
       
-      // Запускаем таймер
-      timeLeft = data.time;
-      if (timerInterval) clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
+      let timeLeft = data.time;
+      if (window.timerInterval) clearInterval(window.timerInterval);
+      window.timerInterval = setInterval(() => {
         timeLeft--;
         document.getElementById('timer').textContent = timeLeft;
         if (timeLeft <= 0) {
-          clearInterval(timerInterval);
-          showResults();
+          clearInterval(window.timerInterval);
+          document.getElementById('showResultsBtn').style.display = 'inline-block';
         }
       }, 1000);
     });
     
-    socket.on('answer-stats', (data) => {
-      document.getElementById('answerStats').style.display = 'block';
-      document.getElementById('answeredCount').textContent = data.totalAnswers;
-      document.getElementById('totalPlayers').textContent = data.totalPlayers;
-      
-      const percentage = data.totalPlayers > 0 ? (data.correctAnswers / data.totalPlayers) * 100 : 0;
-      const bar = document.getElementById('correctBar');
-      bar.style.width = percentage + '%';
-      bar.textContent = `${data.correctAnswers} correct (${Math.round(percentage)}%)`;
-    });
-    
-    socket.on('game-over', (data) => {
-      clearInterval(timerInterval);
+    socket.on('round-results', (data) => {
       document.getElementById('questionScreen').classList.remove('active');
-      document.getElementById('resultsScreen').classList.add('active');
+      document.getElementById('roundResultsScreen').classList.add('active');
       
-      const leaderboard = document.getElementById('leaderboard');
-      leaderboard.innerHTML = data.leaderboard.map((player, index) => `
+      const lb = document.getElementById('roundLeaderboard');
+      lb.innerHTML = data.leaderboard.slice(0, 5).map((player, index) => `
         <div class="leaderboard-item">
           <div style="display: flex; align-items: center;">
-            <div class="rank">${index + 1 === 1 ? '🥇' : index + 1 === 2 ? '🥈' : index + 1 === 3 ? '🥉' : '#' + (index + 1)}</div>
-            <div class="player-info">
+            <div class="rank">${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '#' + (index + 1)}</div>
+            <div>
+              <div style="font-size: 1.5em; margin-bottom: 5px;">${player.avatar}</div>
+              <div style="font-weight: bold;">${player.name}</div>
+            </div>
+          </div>
+          <div class="player-score">${player.score} pts</div>
+        </div>
+      `).join('');
+    });
+
+    socket.on('game-over', (data) => {
+      clearInterval(window.timerInterval);
+      document.getElementById('roundResultsScreen').classList.remove('active');
+      document.getElementById('finalResultsScreen').classList.add('active');
+      
+      const lb = document.getElementById('finalLeaderboard');
+      lb.innerHTML = data.leaderboard.map((player, index) => `
+        <div class="leaderboard-item">
+          <div style="display: flex; align-items: center;">
+            <div class="rank">${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '#' + (index + 1)}</div>
+            <div>
               <div style="font-size: 1.5em; margin-bottom: 5px;">${player.avatar}</div>
               <div style="font-weight: bold;">${player.name}</div>
             </div>
@@ -410,14 +210,14 @@
       socket.emit('start-game', roomCode);
     }
     
+    function showRoundResults() {
+      if (!roomCode) return;
+      socket.emit('show-round-results', roomCode);
+    }
+
     function nextQuestion() {
       if (!roomCode) return;
       socket.emit('next-question', roomCode);
-    }
-    
-    function showResults() {
-      document.getElementById('answerStats').style.display = 'block';
-      document.getElementById('nextBtn').style.display = 'inline-block';
     }
   </script>
 </body>
