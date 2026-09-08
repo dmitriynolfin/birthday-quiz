@@ -18,14 +18,13 @@ function generateRoomCode() {
 }
 
 const defaultQuestions = [
-  // === 🇷🇺 RUSSIA QUESTIONS (NEW) ===
   { 
     category: "🇷🇺 Russia", 
     question: "What is the deepest and oldest freshwater lake in the world, located in Russia?", 
     options: ["Lake Ladoga", "Lake Baikal", "Lake Onega", "Caspian Sea"], 
     correct: 1, 
     time: 15,
-    videoUrl: "https://www.youtube.com/embed/H0R6Yj8kOqE?autoplay=1&mute=1&start=10" // Пример видео
+    videoUrl: "https://www.youtube.com/embed/H0R6Yj8kOqE?autoplay=1&mute=1" 
   },
   { 
     category: "🇷🇺 Russia", 
@@ -35,76 +34,11 @@ const defaultQuestions = [
     time: 15 
   },
   { 
-    category: "🇷🇺 Russia", 
-    question: "What is the name of the traditional Russian wooden nesting dolls?", 
-    options: ["Babushka", "Matryoshka", "Kokoshnik", "Sputnik"], 
-    correct: 1, 
-    time: 10 
-  },
-  { 
-    category: "🇷🇺 Russia", 
-    question: "The Trans-Siberian Railway, the longest railway line in the world, connects Moscow to which city?", 
-    options: ["Beijing", "Vladivostok", "St. Petersburg", "Novosibirsk"], 
-    correct: 1, 
-    time: 15 
-  },
-  { 
-    category: "🇷🇺 Russia", 
-    question: "Who was the first human to journey into outer space in 1961?", 
-    options: ["Neil Armstrong", "Yuri Gagarin", "Alexei Leonov", "Valentina Tereshkova"], 
-    correct: 1, 
-    time: 10 
-  },
-
-  // === 🏙️ DUBAI QUESTIONS ===
-  { 
     category: "🏙️ Dubai", 
     question: "What is the height of Burj Khalifa, the tallest building in the world?", 
     options: ["628 meters", "728 meters", "828 meters", "928 meters"], 
     correct: 2, 
     time: 15 
-  },
-  { 
-    category: "🏙️ Dubai", 
-    question: "What is special about Dubai's Palm Jumeirah?", 
-    options: [
-      "It's the largest artificial island in the world",
-      "It's shaped like a palm tree and visible from space",
-      "It has the world's largest hotel",
-      "All of the above"
-    ], 
-    correct: 3, 
-    time: 15 
-  },
-  
-  // === 🏭 MAGNITOGORSK QUESTIONS ===
-  { 
-    category: "🏭 Magnitogorsk", 
-    question: "What is unique about Magnitogorsk's location?", 
-    options: [
-      "It's located on two continents: Europe and Asia",
-      "It's the southernmost city in Russia",
-      "It's built entirely underground",
-      "It's located on an active volcano"
-    ], 
-    correct: 0, 
-    time: 15 
-  },
-  { 
-    category: "🏭 Magnitogorsk", 
-    question: "What river flows through Magnitogorsk?", 
-    options: ["Volga River", "Ural River", "Ob River", "Yenisei River"], 
-    correct: 1, 
-    time: 10 
-  },
-  
-  // === 🎂 BIRTHDAY STAR PERSONAL QUESTIONS ===
-  { 
-    category: "🎂 Birthday Star", 
-    question: "What is my favorite food?", 
-    options: ["Pizza", "Sushi", "Burgers", "Pasta"], 
-    correct: 1, 
-    time: 10 
   },
   { 
     category: "🎂 Birthday Star", 
@@ -135,12 +69,7 @@ app.post('/api/create-room', async (req, res) => {
 app.get('/api/room/:code', (req, res) => {
   const room = rooms[req.params.code];
   if (!room) return res.status(404).json({ error: 'Room not found' });
-  res.json({ 
-    roomCode: room.code, 
-    hostName: room.hostName, 
-    playerCount: Object.keys(room.players).length, 
-    gameState: room.gameState 
-  });
+  res.json({ roomCode: room.code, playerCount: Object.keys(room.players).length, gameState: room.gameState });
 });
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
@@ -154,105 +83,66 @@ io.on('connection', (socket) => {
     const room = rooms[roomCode];
     if (!room) return socket.emit('error', 'Room not found');
     
-    room.players[socket.id] = { 
-      id: socket.id, 
-      name: playerName, 
-      avatar: `🎮${Math.floor(Math.random() * 99)}` 
-    };
-    
+    room.players[socket.id] = { id: socket.id, name: playerName, avatar: `🎮${Math.floor(Math.random() * 99)}` };
     socket.join(roomCode);
     socket.emit('joined-success', { playerId: socket.id, roomCode, playerName });
-    
-    io.to(roomCode).emit('players-update', { 
-      players: Object.values(room.players), 
-      playerCount: Object.keys(room.players).length 
-    });
+    io.to(roomCode).emit('players-update', { players: Object.values(room.players), playerCount: Object.keys(room.players).length });
   });
 
   socket.on('start-game', (roomCode) => {
     const room = rooms[roomCode];
     if (!room) return;
-    
     room.gameState = 'playing';
     room.currentQuestion = 0;
     room.scores = {};
     room.questionScores = [];
-    
     Object.keys(room.players).forEach(id => room.scores[id] = 0);
-    
     io.to(roomCode).emit('game-started', { totalQuestions: room.questions.length });
-    setTimeout(() => sendQuestion(roomCode), 2000);
+    setTimeout(() => sendQuestion(roomCode), 1500);
   });
 
-  // НОВЫЙ ПОТОК: Сначала показываем результаты раунда, потом следующий вопрос
   socket.on('show-round-results', (roomCode) => {
     const room = rooms[roomCode];
     if (!room) return;
-    
     const leaderboard = Object.values(room.players).map(player => ({
-      id: player.id,
-      name: player.name,
-      score: room.scores[player.id] || 0,
-      avatar: player.avatar
+      id: player.id, name: player.name, score: room.scores[player.id] || 0, avatar: player.avatar
     })).sort((a, b) => b.score - a.score);
-    
     io.to(roomCode).emit('round-results', { leaderboard });
   });
 
   socket.on('next-question', (roomCode) => {
     const room = rooms[roomCode];
     if (!room) return;
-    
     room.currentQuestion++;
-    if (room.currentQuestion >= room.questions.length) {
-      endGame(roomCode);
-    } else {
-      sendQuestion(roomCode);
-    }
+    if (room.currentQuestion >= room.questions.length) endGame(roomCode);
+    else sendQuestion(roomCode);
   });
 
   socket.on('submit-answer', ({ roomCode, answerIndex }) => {
     const room = rooms[roomCode];
     if (!room || room.gameState !== 'playing') return;
-    
     const question = room.questions[room.currentQuestion];
     if (room.questionScores[room.currentQuestion]?.[socket.id]) return;
     
     const isCorrect = answerIndex === question.correct;
     const points = isCorrect ? Math.max(100, question.time * 10) : 0;
     
-    if (!room.questionScores[room.currentQuestion]) {
-      room.questionScores[room.currentQuestion] = {};
-    }
+    if (!room.questionScores[room.currentQuestion]) room.questionScores[room.currentQuestion] = {};
+    room.questionScores[room.currentQuestion][socket.id] = { answer: answerIndex, correct: isCorrect, points, time: Date.now() };
     
-    room.questionScores[room.currentQuestion][socket.id] = { 
-      answer: answerIndex, correct: isCorrect, points: points, time: Date.now() 
-    };
-    
-    if (isCorrect) {
-      room.scores[socket.id] = (room.scores[socket.id] || 0) + points;
-    }
-    
+    if (isCorrect) room.scores[socket.id] = (room.scores[socket.id] || 0) + points;
     socket.emit('answer-submitted', { correct: isCorrect, points });
     
     const correctCount = Object.values(room.questionScores[room.currentQuestion]).filter(a => a.correct).length;
     const totalCount = Object.keys(room.questionScores[room.currentQuestion]).length;
-    
-    io.to(roomCode).emit('answer-stats', { 
-      totalAnswers: totalCount, 
-      correctAnswers: correctCount, 
-      totalPlayers: Object.keys(room.players).length 
-    });
+    io.to(roomCode).emit('answer-stats', { totalAnswers: totalCount, correctAnswers: correctCount, totalPlayers: Object.keys(room.players).length });
   });
 
   socket.on('disconnect', () => {
     Object.values(rooms).forEach(room => {
       if (room.players[socket.id]) {
         delete room.players[socket.id];
-        io.to(room.code).emit('players-update', { 
-          players: Object.values(room.players), 
-          playerCount: Object.keys(room.players).length 
-        });
+        io.to(room.code).emit('players-update', { players: Object.values(room.players), playerCount: Object.keys(room.players).length });
       }
     });
   });
@@ -261,7 +151,6 @@ io.on('connection', (socket) => {
 function sendQuestion(roomCode) {
   const room = rooms[roomCode];
   if (!room) return;
-  
   const question = room.questions[room.currentQuestion];
   io.to(roomCode).emit('new-question', {
     questionNumber: room.currentQuestion + 1,
@@ -277,16 +166,12 @@ function sendQuestion(roomCode) {
 function endGame(roomCode) {
   const room = rooms[roomCode];
   if (!room) return;
-  
   room.gameState = 'results';
   const leaderboard = Object.values(room.players).map(player => ({
     id: player.id, name: player.name, score: room.scores[player.id] || 0, avatar: player.avatar
   })).sort((a, b) => b.score - a.score);
-  
   io.to(roomCode).emit('game-over', { leaderboard });
 }
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
