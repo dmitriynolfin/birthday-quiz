@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Join Quiz - Birthday Party</title>
   <script src="/socket.io/socket.io.js"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
-    
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
     body {
-      min-height: 100vh;
+      min-height: 100dvh;
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       color: #fff;
       padding: 20px;
@@ -17,240 +16,91 @@
       align-items: center;
       justify-content: center;
     }
-    
-    .container {
-      max-width: 500px;
-      width: 100%;
-    }
-    
-    .screen {
-      display: none;
-      animation: fadeIn 0.5s;
-    }
-    
+    .container { max-width: 500px; width: 100%; }
+    .screen { display: none; animation: fadeIn 0.4s; }
     .screen.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    .logo { text-align: center; margin-bottom: 40px; }
+    .logo h1 { font-size: 2.5em; background: linear-gradient(90deg, #ffd700, #ffb347); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     
-    .logo {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-    
-    .logo h1 {
-      font-size: 2.5em;
-      background: linear-gradient(90deg, #ffd700, #ffb347);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    
-    .input-group {
-      margin-bottom: 20px;
-    }
-    
-    .input-group label {
-      display: block;
-      margin-bottom: 8px;
-      color: #ffd700;
-      font-weight: bold;
-    }
-    
+    .input-group { margin-bottom: 20px; }
+    .input-group label { display: block; margin-bottom: 8px; color: #ffd700; font-weight: bold; }
     .input-group input {
-      width: 100%;
-      padding: 15px;
-      font-size: 1.1em;
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.05);
-      color: #fff;
-      text-align: center;
-      text-transform: uppercase;
-      letter-spacing: 5px;
+      width: 100%; padding: 18px; font-size: 1.2em; border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 15px; background: rgba(255, 255, 255, 0.05); color: #fff; text-align: center;
+      text-transform: uppercase; letter-spacing: 5px;
     }
-    
-    .input-group input:focus {
-      outline: none;
-      border-color: #ffd700;
-    }
+    .input-group input:focus { outline: none; border-color: #ffd700; }
     
     .btn {
-      width: 100%;
-      padding: 15px;
-      font-size: 1.1em;
-      font-weight: bold;
-      color: #1a1a2e;
-      background: linear-gradient(135deg, #ffd700, #ffb347);
-      border: none;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: all 0.3s;
-      margin-top: 10px;
+      width: 100%; padding: 18px; font-size: 1.2em; font-weight: bold; color: #1a1a2e;
+      background: linear-gradient(135deg, #ffd700, #ffb347); border: none; border-radius: 50px;
+      cursor: pointer; transition: all 0.2s; margin-top: 10px; touch-action: manipulation;
     }
+    .btn:active { transform: scale(0.97); }
     
-    .btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
-    }
+    .waiting { text-align: center; padding: 40px; }
+    .waiting-icon { font-size: 80px; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } }
     
-    .waiting {
-      text-align: center;
-      padding: 40px;
-    }
+    .question-screen { background: rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 25px; }
+    .category { color: #ffd700; font-size: 0.9em; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; text-align: center; }
+    .timer { text-align: center; font-size: 3.5em; color: #ffd700; font-weight: 900; margin-bottom: 15px; }
+    .question-text { font-size: 1.4em; margin-bottom: 25px; line-height: 1.3; text-align: center; font-weight: 600; }
     
-    .waiting-icon {
-      font-size: 80px;
-      animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.1); opacity: 0.7; }
-    }
-    
-    .question-screen {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 20px;
-      padding: 30px;
-    }
-    
-    .category {
-      color: #ffd700;
-      font-size: 1em;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 10px;
-    }
-    
-    .question-text {
-      font-size: 1.5em;
-      margin-bottom: 25px;
-      line-height: 1.3;
-    }
-    
-    .timer {
-      text-align: center;
-      font-size: 3em;
-      color: #ffd700;
-      font-weight: bold;
-      margin-bottom: 20px;
-    }
-    
-    .options {
-      display: grid;
-      gap: 12px;
-    }
-    
+    .options { display: grid; gap: 15px; }
     .option {
-      padding: 18px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 2px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s;
-      font-size: 1.05em;
-      text-align: center;
+      padding: 20px; background: rgba(255, 255, 255, 0.08); border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 15px; cursor: pointer; transition: all 0.2s; font-size: 1.1em; text-align: center;
+      font-weight: 500; touch-action: manipulation;
     }
-    
-    .option:hover:not(:disabled) {
-      background: rgba(255, 215, 0, 0.15);
-      border-color: #ffd700;
-      transform: translateX(5px);
-    }
-    
-    .option.correct {
-      background: rgba(76, 175, 80, 0.3);
-      border-color: #4caf50;
-    }
-    
-    .option.wrong {
-      background: rgba(244, 67, 54, 0.3);
-      border-color: #f44336;
-    }
-    
+    .option:active:not(:disabled) { transform: scale(0.98); background: rgba(255, 215, 0, 0.2); }
+    .option.correct { background: rgba(76, 175, 80, 0.3); border-color: #4caf50; animation: pop 0.3s; }
+    .option.wrong { background: rgba(244, 67, 54, 0.3); border-color: #f44336; animation: shake 0.4s; }
     .option:disabled { cursor: not-allowed; opacity: 0.6; }
     
-    .feedback {
-      text-align: center;
-      padding: 20px;
-      margin-top: 20px;
-      border-radius: 15px;
-      font-size: 1.2em;
-      font-weight: bold;
-    }
+    @keyframes pop { 50% { transform: scale(1.05); } }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
     
-    .feedback.correct {
-      background: rgba(76, 175, 80, 0.2);
-      color: #4caf50;
-    }
+    .feedback { text-align: center; padding: 20px; margin-top: 20px; border-radius: 15px; font-size: 1.2em; font-weight: bold; }
+    .feedback.correct { background: rgba(76, 175, 80, 0.2); color: #4caf50; }
+    .feedback.wrong { background: rgba(244, 67, 54, 0.2); color: #f44336; }
     
-    .feedback.wrong {
-      background: rgba(244, 67, 54, 0.2);
-      color: #f44336;
-    }
+    .results-screen { text-align: center; padding: 40px 20px; }
+    .final-rank { font-size: 5em; margin-bottom: 20px; }
+    .final-score { font-size: 2.5em; color: #ffd700; margin-bottom: 30px; font-weight: bold; }
     
-    .results-screen {
-      text-align: center;
-      padding: 40px;
-    }
-    
-    .final-rank {
-      font-size: 5em;
-      margin-bottom: 20px;
-    }
-    
-    .final-score {
-      font-size: 2em;
-      color: #ffd700;
-      margin-bottom: 30px;
-    }
-    
-    .error {
-      background: rgba(244, 67, 54, 0.2);
-      border: 1px solid #f44336;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      color: #f44336;
-    }
+    .error { background: rgba(244, 67, 54, 0.2); border: 1px solid #f44336; padding: 15px; border-radius: 10px; margin-bottom: 20px; color: #f44336; text-align: center; }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Join Screen -->
     <div id="joinScreen" class="screen active">
       <div class="logo">
         <h1>🎮 Join Quiz</h1>
-        <p style="color: #aaa;">Enter the room code to play</p>
+        <p style="color: #aaa; margin-top: 10px;">Enter the room code to play</p>
       </div>
-      
       <div id="errorMsg" class="error" style="display: none;"></div>
-      
       <div class="input-group">
         <label>Room Code</label>
         <input type="text" id="roomCodeInput" placeholder="ABC123" maxlength="6">
       </div>
-      
       <div class="input-group">
         <label>Your Name</label>
         <input type="text" id="playerNameInput" placeholder="Enter your name" style="text-transform: none; letter-spacing: normal; text-align: left;">
       </div>
-      
       <button class="btn" onclick="joinGame()">🎯 Join Game</button>
     </div>
     
-    <!-- Waiting Screen -->
     <div id="waitingScreen" class="screen">
       <div class="waiting">
-        <div class="waiting-icon"></div>
-        <h2 style="margin: 20px 0;">Waiting for host...</h2>
+        <div class="waiting-icon">🎉</div>
+        <h2 style="margin: 20px 0;">You're in!</h2>
         <p style="color: #aaa;">The game will start soon. Good luck! 🍀</p>
       </div>
     </div>
     
-    <!-- Question Screen -->
     <div id="questionScreen" class="screen">
       <div class="question-screen">
         <div class="category" id="qCategory">Category</div>
@@ -261,15 +111,22 @@
       </div>
     </div>
     
-    <!-- Results Screen -->
-    <div id="resultsScreen" class="screen">
+    <div id="roundResultsScreen" class="screen">
+      <div class="results-screen">
+        <h1>📊 Round Results</h1>
+        <p style="color: #aaa; margin: 20px 0;">Check your position!</p>
+        <div id="roundRank" style="font-size: 4em; margin: 20px 0;">🏆</div>
+        <div class="final-score"><span id="roundScore">0</span> pts</div>
+        <p style="color: #ffd700; font-size: 1.2em;">Waiting for the next question...</p>
+      </div>
+    </div>
+
+    <div id="finalResultsScreen" class="screen">
       <div class="results-screen">
         <div class="final-rank" id="finalRank">🏆</div>
         <h1>Game Over!</h1>
-        <div class="final-score">
-          <span id="finalScore">0</span> points
-        </div>
-        <p id="rankText" style="color: #aaa; margin-bottom: 30px;"></p>
+        <div class="final-score"><span id="finalScore">0</span> points</div>
+        <p id="rankText" style="color: #aaa; margin-bottom: 30px; font-size: 1.2em;"></p>
         <button class="btn" onclick="location.reload()">🔄 Play Again</button>
       </div>
     </div>
@@ -280,9 +137,7 @@
     let roomCode = null;
     let playerId = null;
     let currentQuestion = null;
-    let timerInterval = null;
     
-    // Проверяем URL на наличие кода комнаты
     const pathParts = window.location.pathname.split('/');
     if (pathParts[2]) {
       document.getElementById('roomCodeInput').value = pathParts[2].toUpperCase();
@@ -299,28 +154,15 @@
       const code = document.getElementById('roomCodeInput').value.toUpperCase().trim();
       const name = document.getElementById('playerNameInput').value.trim();
       
-      if (!code || code.length !== 6) {
-        showError('Please enter a valid 6-character room code');
-        return;
-      }
-      
-      if (!name) {
-        showError('Please enter your name');
-        return;
-      }
+      if (!code || code.length !== 6) { showError('Please enter a valid 6-character code'); return; }
+      if (!name) { showError('Please enter your name'); return; }
       
       try {
         const response = await fetch(`/api/room/${code}`);
-        if (!response.ok) {
-          showError('Room not found. Check the code!');
-          return;
-        }
-        
+        if (!response.ok) { showError('Room not found. Check the code!'); return; }
         roomCode = code;
         socket.emit('join-game', { roomCode, playerName: name });
-      } catch (error) {
-        showError('Error connecting to room');
-      }
+      } catch (error) { showError('Error connecting to room'); }
     }
     
     socket.on('joined-success', (data) => {
@@ -329,11 +171,9 @@
       document.getElementById('waitingScreen').classList.add('active');
     });
     
-    socket.on('error', (msg) => {
-      showError(msg);
-    });
+    socket.on('error', showError);
     
-    socket.on('game-started', (data) => {
+    socket.on('game-started', () => {
       document.getElementById('waitingScreen').classList.remove('active');
       document.getElementById('questionScreen').classList.add('active');
     });
@@ -356,14 +196,13 @@
         optionsDiv.appendChild(btn);
       });
       
-      // Таймер
-      if (timerInterval) clearInterval(timerInterval);
+      if (window.timerInterval) clearInterval(window.timerInterval);
       let timeLeft = data.time;
-      timerInterval = setInterval(() => {
+      window.timerInterval = setInterval(() => {
         timeLeft--;
         document.getElementById('timer').textContent = timeLeft;
         if (timeLeft <= 0) {
-          clearInterval(timerInterval);
+          clearInterval(window.timerInterval);
           disableOptions();
         }
       }, 1000);
@@ -371,13 +210,16 @@
     
     function submitAnswer(index) {
       if (!roomCode || currentQuestion === null) return;
-      
       disableOptions();
+      
+      // Тактильная отдача для мобильных
+      if (navigator.vibrate) navigator.vibrate(50);
+      
       socket.emit('submit-answer', { roomCode, answerIndex: index });
     }
     
     function disableOptions() {
-      clearInterval(timerInterval);
+      clearInterval(window.timerInterval);
       document.querySelectorAll('.option').forEach(btn => btn.disabled = true);
     }
     
@@ -387,17 +229,37 @@
       
       if (data.correct) {
         feedback.className = 'feedback correct';
-        feedback.textContent = `✅ Correct! +${data.points} points`;
+        feedback.textContent = `✅ Correct! +${data.points} pts`;
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
       } else {
         feedback.className = 'feedback wrong';
         feedback.textContent = '❌ Wrong answer';
+        if (navigator.vibrate) navigator.vibrate(200);
       }
     });
-    
-    socket.on('game-over', (data) => {
-      clearInterval(timerInterval);
+
+    socket.on('round-results', (data) => {
       document.getElementById('questionScreen').classList.remove('active');
-      document.getElementById('resultsScreen').classList.add('active');
+      document.getElementById('roundResultsScreen').classList.add('active');
+      
+      const player = data.leaderboard.find(p => p.id === playerId);
+      const rank = data.leaderboard.findIndex(p => p.id === playerId) + 1;
+      
+      document.getElementById('roundScore').textContent = player ? player.score : 0;
+      document.getElementById('roundRank').textContent = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+    });
+    
+    socket.on('new-question', () => {
+      // Если мы были на экране результатов раунда, переключаемся обратно на вопрос
+      document.getElementById('roundResultsScreen').classList.remove('active');
+      document.getElementById('questionScreen').classList.add('active');
+    });
+
+    socket.on('game-over', (data) => {
+      clearInterval(window.timerInterval);
+      document.getElementById('questionScreen').classList.remove('active');
+      document.getElementById('roundResultsScreen').classList.remove('active');
+      document.getElementById('finalResultsScreen').classList.add('active');
       
       const player = data.leaderboard.find(p => p.id === playerId);
       const rank = data.leaderboard.findIndex(p => p.id === playerId) + 1;
